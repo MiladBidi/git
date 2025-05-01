@@ -2,7 +2,7 @@
 
 1. Create SSH Keys
 ```bash
-ssh-keygen -t ed25519 -c "comment"
+ssh-keygen -t ed25519 -C "comment"
 ```
 
 2. Copy public-key to Root user in gitlab:
