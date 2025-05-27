@@ -38,12 +38,46 @@ vault secrets enable -path=secret kv
 ```
 This command creates a path called secret to store data.
 
-### 2. Save the kubeconfig file to Vault
+### Save the kubeconfig file to Vault
 
 ```bash
 cat ~/.kube/config | base64 > kubeconfig_base64.txt
 vault kv put secret/kubeconfig data="$(cat kubeconfig_base64.txt)"
 ```
+`secret/kubeconfig` is the storage path in Vault and `data` is the key that holds the kubeconfig value. \
+
+Make sure the data is saved correctly:
+```bash
+vault kv get secret/kubeconfig
+```
+You should see output similar to this:
+![image](https://github.com/user-attachments/assets/dcab1559-3413-4960-9f24-727e621f89cf)
+
+### Creating a secure token for CI/CD
+First we need to create a policy to restrict access. Create a policy file called ci-policy.hcl:
+```bash
+path "secret/data/kubeconfig" {
+  capabilities = ["read"]
+}
+```
+This policy only allows reading of the `secret/kubeconfig` path. \
+Apply the policy to the Vault:
+```bash
+vault policy write ci-policy ci-policy.hcl
+```
+
+```bash
+vault policy list
+```
+![image](https://github.com/user-attachments/assets/254fdbe8-bab5-4171-a5c3-1a421717b728)
+
+Create a token with the above Policy:
+```bash
+vault token create -policy=ci-policy -ttl=8760h
+```
+The output will be a new token, Copy this token (s.XXXXXXXXXXXXXXXXXX).
+
+![image](https://github.com/user-attachments/assets/e070c07e-0cb4-42ad-b274-7f9bd1ae0e5e)
 
 
 
