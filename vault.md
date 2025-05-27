@@ -75,9 +75,29 @@ Create a token with the above Policy:
 ```bash
 vault token create -policy=ci-policy -ttl=8760h
 ```
-The output will be a new token, Copy this token (s.XXXXXXXXXXXXXXXXXX).
+The output will be a new token, Copy this token (hvs.XXXXXXXXXXXXXXXXXX).
 
 ![image](https://github.com/user-attachments/assets/e070c07e-0cb4-42ad-b274-7f9bd1ae0e5e)
 
+Create variables `VAULT_ADDR` and `VAULT_TOKEN` in GitLab. \
 
+And now we use it in CI/CD job:
+```
+stages:
+  - check
+
+check_cluster:
+  stage: check
+  image: bitnami/kubectl:latest
+  before_script:
+    - export VAULT_ADDR=$VAULT_ADDR
+    - export VAULT_TOKEN=$VAULT_TOKEN
+  script:
+    - export KUBECONFIG_BASE64=$(vault kv get -field=data secret/kubeconfig)
+    - echo "$KUBECONFIG_BASE64" | base64 -d > kubeconfig
+    - export KUBECONFIG=$PWD/kubeconfig
+    - kubectl get nodes
+```
+
+**Hint:** The image from which the container for this job is built, must have the necessary tools, such as  `kubectl` and `Vault` binaries.
 
