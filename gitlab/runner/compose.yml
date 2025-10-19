@@ -1,0 +1,17 @@
+services:
+  gitlab-runner:
+    image: gitlab/gitlab-runner:v18.4.0
+    container_name: runner
+    hostname: runner
+    restart: unless-stopped
+    volumes:
+      - ./gitlab-runner/config:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - CI_SERVER_URL=http://gitlab.local
+    networks:
+      - gitlab_default
+
+networks:
+  gitlab_default:
+    external: true
