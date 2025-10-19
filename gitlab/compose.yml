@@ -1,0 +1,51 @@
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:18.4.2-ce.0
+    container_name: gitlab
+    hostname: gitlab.local
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        postgresql['shared_buffers'] = '512MB'
+        postgresql['max_connections'] = 50
+        postgresql['work_mem'] = '16MB'
+
+        redis['maxmemory'] = '512mb'
+        redis['maxmemory_policy'] = 'allkeys-lru'
+
+        puma['worker_processes'] = 1
+        puma['min_threads'] = 2
+        puma['max_threads'] = 4
+
+        sidekiq['concurrency'] = 5
+
+        nginx['enable'] = true
+        prometheus['enable'] = false
+        alertmanager['enable'] = false
+        node_exporter['enable'] = false
+        redis_exporter['enable'] = false
+        postgres_exporter['enable'] = false
+        gitlab_exporter['enable'] = false
+        prometheus_monitoring['enable'] = false
+        gitlab_pages['enable'] = false
+
+        gitlab_rails['gitlab_default_projects_features']['snippets'] = false
+        gitlab_rails['gitlab_default_projects_features']['wiki'] = false
+
+        mattermost['enable'] = false
+        registry['enable'] = true
+        gitlab_kas['enable'] = false
+
+        external_url 'http://gitlab.local'
+        registry_external_url 'http://gitlab.example.com:5050'
+        registry_nginx['listen_port'] = 5050
+
+    ports:
+      - "80:80"
+      - "443:443"
+      - "2222:22"
+      - '5050:5050'
+    volumes:
+      - ./gitlab/config:/etc/gitlab
+      - ./gitlab/logs:/var/log/gitlab
+      - ./gitlab/data:/var/opt/gitlab
+    restart: unless-stopped
